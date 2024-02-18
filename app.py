@@ -63,7 +63,31 @@ def create_user():
     
     return jsonify({"message": "Dados invalidos"}), 400
 
+@app.route("/user/<int:id_user>", methods=["GET"])
+@login_required
+def read_user(id_user):
+    user = User.query.get(id_user)
 
+    if user:
+        return {"username": user.username}
+    
+    return jsonify({"message": "Usuario nao encontrado"}), 404
+
+
+@app.route("/user/<int:id_user>", methods=["PUT"])
+@login_required
+def update_user(id_user):
+    data = request.json
+    user = User.query.get(id_user)
+
+    if user and data.get("password"):
+        hashed_password = bcrypt.hashpw(str.encode(data.get("password")), bcrypt.gensalt())
+        user.password = hashed_password
+        db.session.commit()
+
+        return jsonify({"message": f"Usuario {id_user} atualizado com sucesso!"})
+    
+    return jsonify({"message": "Usuario nao encontrado"}), 404
 
 
 if __name__ == '__main__':
